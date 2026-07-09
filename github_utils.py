@@ -53,7 +53,7 @@ def _make_empty_excel_bytes():
         df.to_excel(writer, index=False, sheet_name="WorkoutLog")
     output.seek(0)
     return output.read()
-
+'''
 # ─────────────────────────────────────────────
 def load_data_from_github():
     repo = get_github_repo()
@@ -167,7 +167,7 @@ def load_data_from_github():
     except Exception as e:
         st.error(f"❌ Unexpected error loading data: {e}")
         return get_empty_dataframe()
-'''
+
 # ─────────────────────────────────────────────
 # SAVE
 # ─────────────────────────────────────────────
