@@ -116,6 +116,7 @@ def load_data_from_github():
         st.error(f"❌ Unexpected error loading data: {e}")
         return get_empty_dataframe()
 
+'''
 # ─────────────────────────────────────────────
 def load_data_from_github():
     """Load Excel file from GitHub and return as DataFrame."""
@@ -167,7 +168,7 @@ def load_data_from_github():
     except Exception as e:
         st.error(f"❌ Unexpected error loading data: {e}")
         return get_empty_dataframe()
-
+'''
 # ─────────────────────────────────────────────
 # SAVE
 # ─────────────────────────────────────────────
