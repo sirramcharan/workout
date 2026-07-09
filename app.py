@@ -1,12 +1,28 @@
 # app.py
 
 import streamlit as st
+
 import pandas as pd
 import datetime
 import time
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+# app.py — add this near the top with other imports
+import datetime
+import pytz  # add this import
+
+# IST Timezone
+IST = pytz.timezone("Asia/Kolkata")
+
+def get_now_ist():
+    """Get current datetime in IST."""
+    return datetime.datetime.now(IST)
+
+def get_today():
+    """Get today's date in IST."""
+    return get_now_ist().date()
+
 from github_utils import (
     load_data_from_github,
     append_and_save,
@@ -616,13 +632,19 @@ def start_timer(phase: str, label: str, duration: int):
 # HEADER
 # ─────────────────────────────────────────────
 def render_header():
-    st.markdown('<div class="app-title">⚡ FITTRACKER PRO</div>', unsafe_allow_html=True)
+    st.markdown('<div class="app-title">⚡ FITTRACKER PRO</div>', 
+                unsafe_allow_html=True)
     st.markdown('<div class="app-subtitle">Your Daily Fitness Command Center</div>',
                 unsafe_allow_html=True)
 
-    # Live date/time (refreshes on rerun)
-    now_str = datetime.datetime.now().strftime("%A, %B %d %Y  |  %I:%M:%S %p")
-    st.markdown(f'<div class="datetime-display">🗓️ {now_str}</div>', unsafe_allow_html=True)
+    # ✅ Live IST date/time
+    now_ist = get_now_ist()
+    now_str = now_ist.strftime("%A, %B %d %Y  |  %I:%M:%S %p")
+    st.markdown(
+        f'<div class="datetime-display">🗓️ {now_str} IST 🇮🇳</div>',
+        unsafe_allow_html=True
+    )
+
 
 # ─────────────────────────────────────────────
 # NAV BAR
