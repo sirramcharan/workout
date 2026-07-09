@@ -26,21 +26,20 @@ def get_github_repo():
 def _get_file_bytes(repo):
     """
     Safely fetch raw bytes of the Excel file from GitHub.
-    Uses decoded_content which handles chunked base64 properly.
     Returns (bytes, sha) or (None, None)
     """
     try:
         file_content = repo.get_contents(EXCEL_FILENAME)
 
-        # ✅ Use decoded_content instead of manual base64 decode
-        # PyGithub handles chunked content automatically this way
-        raw_bytes = file_content.decoded_content
+        # decoded_content still comes as base64 on Streamlit Cloud
+        # so we manually decode it one more time
+        raw_bytes = base64.b64decode(file_content.decoded_content)
         sha       = file_content.sha
         return raw_bytes, sha
 
     except Exception as e:
         if "404" in str(e):
-            return None, None   # File doesn't exist yet
+            return None, None
         raise e
 
 # ─────────────────────────────────────────────
