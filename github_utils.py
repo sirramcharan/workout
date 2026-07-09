@@ -28,7 +28,13 @@ def load_data_from_github():
         file_content = repo.get_contents(EXCEL_FILENAME)
         excel_bytes  = base64.b64decode(file_content.content)
 
-        # ✅ FIX: explicitly specify engine
+        # ✅ Catch corrupted / empty file
+        if len(excel_bytes) < 100:
+            st.warning("⚠️ Excel file appears empty. Starting fresh!")
+            empty_df = get_empty_dataframe()
+            save_data_to_github(empty_df)   # auto-create a valid file
+            return empty_df
+
         df = pd.read_excel(io.BytesIO(excel_bytes), engine="openpyxl")
 
         # Ensure correct dtypes
@@ -41,10 +47,21 @@ def load_data_from_github():
 
     except Exception as e:
         if "404" in str(e):
-            st.warning("⚠️ Excel file not found on GitHub. Starting fresh!")
+            # File doesn't exist — create it fresh
+            st.info("📁 Creating new fitness data file on GitHub...")
+            empty_df = get_empty_dataframe()
+            save_data_to_github(empty_df)
+            return empty_df
+        elif "zip" in str(e).lower() or "BadZipFile" in str(e):
+            # File is corrupted — overwrite it
+            st.warning("⚠️ Excel file was corrupted. Creating a fresh one...")
+            empty_df = get_empty_dataframe()
+            save_data_to_github(empty_df)
+            return empty_df
         else:
             st.error(f"❌ Error loading data: {e}")
-        return get_empty_dataframe()
+            return get_empty_dataframe()
+
 
 def save_data_to_github(df):
     """Save DataFrame as Excel to GitHub."""
