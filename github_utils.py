@@ -56,7 +56,66 @@ def _make_empty_excel_bytes():
     return output.read()
 
 # ─────────────────────────────────────────────
-# LOAD
+def load_data_from_github():
+    repo = get_github_repo()
+    if repo is None:
+        return get_empty_dataframe()
+
+    try:
+        raw_bytes, sha = _get_file_bytes(repo)
+
+        # ── TEMPORARY DEBUG — remove after fixing ──
+        if raw_bytes is not None:
+            st.write(f"📦 File size: {len(raw_bytes)} bytes")
+            st.write(f"📦 SHA: {sha}")
+            st.write(f"📦 First 10 bytes: {raw_bytes[:10]}")
+        else:
+            st.write("📦 raw_bytes is None — file not found")
+        # ── END DEBUG ──
+
+        # ── File doesn't exist → create it ──
+        if raw_bytes is None:
+            st.info("📁 No data file found. Creating one now...")
+            _create_fresh_file(repo)
+            return get_empty_dataframe()
+
+        # ── File is too small to be valid ──
+        if len(raw_bytes) < 200:
+            st.info("📁 Data file was empty. Initializing now...")
+            _overwrite_file(repo, sha)
+            return get_empty_dataframe()
+
+        # ── Try to read it ──
+        try:
+            df = pd.read_excel(
+                io.BytesIO(raw_bytes),
+                engine     = "openpyxl",
+                sheet_name = "WorkoutLog",
+            )
+        except Exception as read_err:
+            # ── TEMPORARY DEBUG ──
+            st.write(f"📦 Read error: {read_err}")
+            # ── END DEBUG ──
+            st.info("📁 Reinitializing data file...")
+            _overwrite_file(repo, sha)
+            return get_empty_dataframe()
+
+        if df.empty:
+            return get_empty_dataframe()
+
+        df["Date"]             = pd.to_datetime(df["Date"], errors="coerce").dt.date
+        df["Reps"]             = pd.to_numeric(df["Reps"],             errors="coerce").fillna(0).astype(int)
+        df["Duration_Minutes"] = pd.to_numeric(df["Duration_Minutes"], errors="coerce").fillna(0).astype(float)
+        df["Distance_KM"]      = pd.to_numeric(df["Distance_KM"],      errors="coerce").fillna(0).astype(float)
+        df["Set_Number"]       = pd.to_numeric(df["Set_Number"],       errors="coerce").fillna(0).astype(int)
+        df["Notes"]            = df["Notes"].fillna("")
+
+        return df
+
+    except Exception as e:
+        st.error(f"❌ Unexpected error loading data: {e}")
+        return get_empty_dataframe()
+
 # ─────────────────────────────────────────────
 def load_data_from_github():
     """Load Excel file from GitHub and return as DataFrame."""
